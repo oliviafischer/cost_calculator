@@ -107,7 +107,7 @@ ui <- fluidPage(
     div("Notes:",
     ul(
         li("Service fee MTurk (", 
-           a(href = "https://requester.mturk.com/pricing", "Click here"), 
+           a(href = "https://requester.mturk.com/pricing", "Click here", target="_blank"), 
            "for pricing details): 20%"),
         br(),
         li("Service fee MTurk for large (>9) assignments/participants: 40%"),
@@ -117,7 +117,7 @@ ui <- fluidPage(
         li("Premium qualifications (MTurk only): median additional fee of $0.40 per assignment"),
         br(),
         li("Service fee Prolific (",
-           a(href = "https://www.prolific.co/pricing", "Click here"),
+           a(href = "https://www.prolific.co/pricing", "Click here", target="_blank"),
            "for pricing details): 33%")
         ))
 
