@@ -1,0 +1,11 @@
+name: riskpol_shiny
+title:
+username:
+account: ofischer
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6046585
+bundleId: 5777605
+url: https://ofischer.shinyapps.io/riskpol_shiny/
+when: 1649411280.99916
+lastSyncTime: 1649411280.99917

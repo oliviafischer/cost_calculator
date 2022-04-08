@@ -31,7 +31,13 @@ ui <- fluidPage(
            numericInput("t_t1",
                         "Length of study T1 [minutes]:",
                         min = 0,
-                        value = 5))
+                        value = 5)),
+    
+    # column(4,
+    #        radioButtons("masters",
+    #                     "Require Masters Qualification (MTurk only)",
+    #                     choices = c("Yes", "No"),
+    #                     selected = character(0)))
     
   ),
   
@@ -88,13 +94,14 @@ ui <- fluidPage(
   
   h4("Cost breakdown"),
   
-  tableOutput("values")
+  tableOutput("cost_table"),
   
+
 ) # closing bracket for fluidPage
 
 
 # Define server logic for slider examples ----
-server <- function(input, output, session) {
+server <- function(input, output) {
   
   # Reactive expression to create data frame of all input values ----
   numericValues <- reactive({
@@ -106,46 +113,40 @@ server <- function(input, output, session) {
       input$n_t3*(input$t_t3/60*input$rate)
     )
       
+
       # Platform payment/service fee
       
+      # Master Qualification
+      # observeEvent(input$masters, {
+      #   if_else(input$masters == "Yes",
+      #           mturk_fee <- (part_pay + input$bonus) * .2 + part_pay * .05,
+      #           mturk_fee <- (part_pay + input$bonus) * 100)
+      #         }
+      #                             )
+      
+      # mqual <- input$masters
+      # 
+      # if_else(mqual != "No",
+      #         mturk_fee <- (part_pay + input$bonus) * .2 + part_pay * .05,
+      #         mturk_fee <- (part_pay + input$bonus) * 100
+      #         )
+      # 
       # Amazon
       mturk_fee <- (part_pay + input$bonus) * .2
+      
+      # Amazon + Masters qual
+      masters_fee <- (part_pay + input$bonus) * .2 + part_pay * .05
       
       # Prolific
       prolific_fee <- (part_pay + input$bonus) * .33
       
-      # # Amazon bonus fee
-      # mturk_bonus <- part_pay * .4
-      
-      # Amazon vs. Prolific
-      # if_else(
-      #   input$platform == "prolific",
-      #   plat_pay <- part_pay * .5,
-      #   plat_pay <- part_pay * 1
-      # )
-      # 
-      # if(input$platform == "mturk"){
-      #   plat_pay <- part_pay * .2
-      # } else if(input$platform == "prolific") {
-      #   plat_pay <- part_pay * .33
-      # }
-      
-      
+
       # Total pay
       tot_pay_mturk <- part_pay + mturk_fee
+      tot_pay_masters <- part_pay + masters_fee
       tot_pay_prolific <- part_pay + prolific_fee
     
-      
-      # MTurk cost breakdown
-    # data.frame(
-    #   Component = c("Participant payment",
-    #                 "Service fee MTurk",
-    #                 "Total"),
-    #   Cost = as.character(c(part_pay,
-    #                         mturk_fee,
-    #                         tot_pay_mturk)),
-    #   stringsAsFactors = FALSE)
-    
+
     # Prolific cost breakdown
     data.frame(
       Component = c("Participant payment",
@@ -154,6 +155,9 @@ server <- function(input, output, session) {
       Cost.MTurk = as.character(c(part_pay,
                                   mturk_fee,
                                   tot_pay_mturk)),
+      Cost.MTurk.Masters = as.character(c(part_pay,
+                                          masters_fee,
+                                          tot_pay_masters)),
       Cost.Prolific = as.character(c(part_pay,
                                      prolific_fee,
                                      tot_pay_prolific)),
@@ -162,7 +166,7 @@ server <- function(input, output, session) {
   })
   
   # Show the values in an HTML table ----
-  output$values <- renderTable({
+  output$cost_table <- renderTable({
     numericValues()
   })
   

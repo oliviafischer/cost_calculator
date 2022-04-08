@@ -1,0 +1,13 @@
+name: riskpol_cost
+title:
+username:
+account: ofischer
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6046644
+bundleId: 5777744
+url: https://ofischer.shinyapps.io/riskpol_cost/
+when: 1649414433.62854
+lastSyncTime: 1649414433.62855
+asMultiple: FALSE
+asStatic: FALSE
