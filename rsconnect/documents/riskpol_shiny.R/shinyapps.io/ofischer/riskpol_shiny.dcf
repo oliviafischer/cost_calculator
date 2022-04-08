@@ -4,11 +4,11 @@ username:
 account: ofischer
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 6046779
-bundleId: 5778937
+appId: 6049022
+bundleId: 5779071
 url: https://ofischer.shinyapps.io/riskpol_shiny/
-when: 1649432954.35144
-lastSyncTime: 1649432954.35144
+when: 1649434570.03248
+lastSyncTime: 1649434570.0325
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: README.md
