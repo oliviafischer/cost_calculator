@@ -37,7 +37,14 @@ ui <- fluidPage(
     #        radioButtons("masters",
     #                     "Require Masters Qualification (MTurk only)",
     #                     choices = c("Yes", "No"),
-    #                     selected = character(0)))
+    #                     selected = character(0))),
+    
+    column(4,
+           numericInput("n_premium",
+                        "Number of premium qualifications (MTurk):",
+                        min = 0,
+                        value = 0,
+                        step = .5))
     
   ),
   
@@ -96,6 +103,28 @@ ui <- fluidPage(
   
   tableOutput("cost_table"),
   
+  withTags({
+    div("Notes:",
+    ul(
+        li("Service fee MTurk (", 
+           a(href = "https://requester.mturk.com/pricing", "Click here"), 
+           "for pricing details): 20%"),
+        br(),
+        li("Service fee MTurk for large (>9) assignments/participants: 40%"),
+        br(),
+        li("Additional service fee for MTurk Masters Qualifications (higher quality participants: 5%)"),
+        br(),
+        li("Premium qualifications (MTurk only): median additional fee of $0.40 per assignment"),
+        br(),
+        li("Service fee Prolific (",
+           a(href = "https://www.prolific.co/pricing", "Click here"),
+           "for pricing details): 33%")
+        ))
+
+    
+  }),
+  
+
 
 ) # closing bracket for fluidPage
 
@@ -112,6 +141,9 @@ server <- function(input, output) {
       input$n_t2*(input$t_t2/60*input$rate),
       input$n_t3*(input$t_t3/60*input$rate)
     )
+      
+      n_tot <- sum(input$n_t1, input$n_t2, input$n_t3)
+      t_tot <- sum(input$t_t1, input$t_t2, input$t_t3)
       
 
       # Platform payment/service fee
@@ -132,10 +164,13 @@ server <- function(input, output) {
       #         )
       # 
       # Amazon
-      mturk_fee <- (part_pay + input$bonus) * .2
+      
+      premium_fee <- .4
+      
+      mturk_fee <- (part_pay + input$bonus) * .2 + input$n_premium * premium_fee *  n_tot
       
       # Amazon + Masters qual
-      masters_fee <- (part_pay + input$bonus) * .2 + part_pay * .05
+      masters_fee <- (part_pay + input$bonus) * .2 + part_pay * .05 + input$n_premium * premium_fee *  n_tot
       
       # Prolific
       prolific_fee <- (part_pay + input$bonus) * .33
