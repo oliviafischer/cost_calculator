@@ -170,16 +170,6 @@ server <- function(input, output) {
                                input$n_t2 * input$bonus,
                                input$n_t1 * input$bonus))
       
-      
-      
-      # if(input$n_t3 != 0 & input$t_t3 != 0){
-      #   bonus <- input$n_t3 * input$bonus
-      # } else if(input$n_t2 != 0 & input$t_t2 != 0){
-      #   bonus <- input$n_t2 * input$bonus
-      # } else (input$n_t1 != 0 & input$t_t1 != 0){
-      #   bonus <- input$n_t1 * input$bonus
-      # }
-        
       # total payment for participants
       tot_pay <- part_pay + bonus
       
