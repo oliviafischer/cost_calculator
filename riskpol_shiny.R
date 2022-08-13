@@ -26,15 +26,15 @@ ui <- fluidPage(
   fluidRow(
     column(4,
            numericInput("n_t1",
-                        "Number of participants T1:",
+                        "No. of participants (assignments) T1:",
                         min = 0,
-                        value = 1000)),
+                        value = 0)),
     
     column(4,
            numericInput("t_t1",
-                        "Length of study T1 [minutes]:",
+                        "Length of study T1 (minutes):",
                         min = 0,
-                        value = 10)),
+                        value = 0)),
     
     # column(4,
     #        radioButtons("masters",
@@ -42,19 +42,20 @@ ui <- fluidPage(
     #                     choices = c("Yes", "No"),
     #                     selected = character(0))),
     
+    
     column(4,
-           numericInput("n_premium",
-                        "Number of premium qualifications*:",
+           numericInput("bonus_t1",
+                        "Bonus payment per participant T1 ($):",
                         min = 0,
-                        max = 2,
-                        value = 0))
+                        value = 0,
+                        step = .1))
     
   ),
   
   fluidRow(
     column(4,
            numericInput("n_t2",
-                        "Number of participants T2:",
+                        "No. of participants (assignments) T2:",
                         min = 0,
                         value = 0)),
     
@@ -62,14 +63,21 @@ ui <- fluidPage(
            numericInput("t_t2",
                         "Length of study T2 [minutes]:",
                         min = 0,
-                        value = 0))
+                        value = 0)),
+    
+    column(4,
+           numericInput("bonus_t2",
+                        "Bonus payment per participant T2 ($):",
+                        min = 0,
+                        value = 0,
+                        step = .1))
     
   ),
   
   fluidRow(
     column(4,
            numericInput("n_t3",
-                        "Number of participants T3:",
+                        "No. participants (assignments) T3:",
                         min = 0,
                         value = 0)),
     
@@ -77,33 +85,44 @@ ui <- fluidPage(
            numericInput("t_t3",
                         "Length of study T3 [minutes]:",
                         min = 0,
-                        value = 0))
+                        value = 0)),
+    
+    column(4,
+           numericInput("bonus_t3",
+                        "Bonus payment per participant T3 ($):",
+                        min = 0,
+                        value = 0,
+                        step = .1))
     
   ),
   
   fluidRow(
     column(4,
+           numericInput("n_premium",
+                        "No. of premium qualifications*:",
+                        min = 0,
+                        max = 2,
+                        value = 0)),
+    
+    column(4,
            # Hourly rate paid to participants
            sliderInput("rate",
-                       "Hourly rate [$]",
+                       "Hourly rate ($)",
                        min = 0,
                        max = 20,
-                       value = 7,
+                       value = 7.5,
                        step = .1)),
     
     column(4,
-           numericInput("bonus",
-                        "Bonus payment [$]:",
-                        min = 0,
-                        value = 0,
-                        step = .5))
+           actionButton("reset", "Reset"))
+    
     
   ),
 
   
   # Output: Table summarizing the values entered ----
   
-  h4("Cost breakdown"),
+  h4("Cost breakdown (in $)"),
   
   tableOutput("cost_table"),
   
@@ -114,7 +133,7 @@ ui <- fluidPage(
            a(href = "https://requester.mturk.com/pricing", "Click here", target="_blank"), 
            "for pricing details): 20%"),
         br(),
-        li("MTurk service fee for large (>9) assignments/participants: 40%"),
+        li("MTurk service fee for large (>9) assignments/participants: 40%. Circumvent this by breaking down large assignments."),
         br(),
         li("Additional service fee for MTurk Masters Qualifications (higher quality participants: 5%)"),
         br(),
@@ -146,103 +165,157 @@ server <- function(input, output) {
   # Reactive expression to create data frame of all input values ----
   numericValues <- reactive({
   
-      
       # total N over all studies
       n_tot <- sum(input$n_t1, input$n_t2, input$n_t3)
       
       # total study time (in minutes)
       t_tot <- sum(input$t_t1, input$t_t2, input$t_t3)
       
-      # Participant payment excl. bonus
-      part_pay <- sum(
-        input$n_t1*(input$t_t1/60*input$rate),
-        input$n_t2*(input$t_t2/60*input$rate),
+      
+      # Total participant payment excl. bonus
+      part_pay_tot <- 
+        input$n_t1*(input$t_t1/60*input$rate) +
+        input$n_t2*(input$t_t2/60*input$rate) +
         input$n_t3*(input$t_t3/60*input$rate)
+      
+      # Bonus payment for all participants
+      bonus_t1_tot <- ifelse(input$n_t1 != 0 & input$t_t1 != 0, 
+                          input$n_t1 * input$bonus_t1,
+                          0) 
+      
+      bonus_t2_tot <- ifelse(input$n_t2 != 0 & input$t_t2 != 0, 
+                          input$n_t2 * input$bonus_t2,
+                          0)
+      
+      bonus_t3_tot <- ifelse(input$n_t3 != 0 & input$t_t3 != 0, 
+                          input$n_t3 * input$bonus_t3,
+                          0)
+      
+      bonus_tot <- bonus_t1_tot + bonus_t2_tot + bonus_t3_tot
+      
+      
+      # total payment for all participants
+      tot_pay <- part_pay_tot + bonus_tot
+      
+      # payment for a single participant, excl. bonus
+      part_pay_t1 <- ifelse(input$n_t1 != 0 & input$t_t1 != 0,
+                             (input$t_t1/60*input$rate),
+                             0) 
+      
+      part_pay_t2 <- ifelse(input$n_t2 != 0 & input$t_t2 != 0,
+                            (input$t_t2/60*input$rate),
+                            0)
+      
+      part_pay_t3 <- ifelse(input$n_t3 != 0 & input$t_t3 != 0,
+                            (input$t_t3/60*input$rate),
+                            0)
+      
+      
+      # Bonus payment per participant
+      bonus_t1 <- ifelse(input$n_t1 != 0 & input$t_t1 != 0, 
+                         input$bonus_t1,
+                         0) 
+      
+      bonus_t2 <- ifelse(input$n_t2 != 0 & input$t_t2 != 0, 
+                         input$bonus_t2,
+                         0)
+      
+      bonus_t3 <- ifelse(input$n_t3 != 0 & input$t_t3 != 0, 
+                         input$bonus_t3,
+                         0)
+      
+      # total bonus per person
+      bonus_tot_1 <- bonus_t1 + bonus_t2 + bonus_t3
+      
+      
+      part_pay_tot_1 <- sum(
+        part_pay_t1,
+        part_pay_t2,
+        part_pay_t3,
+        (bonus_t1),
+        (bonus_t2),
+        (bonus_t3)
       )
       
-      # participant payment excl. bonus
-      # part_pay <- n_tot * (t_tot / 60 * input$rate)
-      
-      # bonus payment
-      bonus <- if_else(input$n_t3 != 0 & input$t_t3 != 0, 
-                       input$n_t3 * input$bonus, 
-                       if_else(input$n_t2 != 0 & input$t_t2 != 0, 
-                               input$n_t2 * input$bonus,
-                               input$n_t1 * input$bonus))
-      
-      # total payment for participants
-      tot_pay <- part_pay + bonus
-      
-      
 
-      # Platform payment/service fee
-      
-      # Master Qualification
-      # observeEvent(input$masters, {
-      #   if_else(input$masters == "Yes",
-      #           mturk_fee <- (part_pay + input$bonus) * .2 + part_pay * .05,
-      #           mturk_fee <- (part_pay + input$bonus) * 100)
-      #         }
-      #                             )
-      
-      # mqual <- input$masters
-      # 
-      # if_else(mqual != "No",
-      #         mturk_fee <- (part_pay + input$bonus) * .2 + part_pay * .05,
-      #         mturk_fee <- (part_pay + input$bonus) * 100
-      #         )
-      # 
-      
-      
       ## Service fees
       # MTurk
       
       premium_fee <- .4
       
-      mturk_fee <- (part_pay + bonus) * .2 + input$n_premium * premium_fee *  n_tot
+      mturk_fee <- (part_pay_tot + bonus_tot) * .2 + input$n_premium * premium_fee *  n_tot
+      
+      # MTurk large batch (N > 9)
+      # UNCLEAR IF 40% COMMISSION IS ONLY ON PAYMENT OR ALSO BONUS
+      mturk_fee_large <- (part_pay_tot + bonus_tot) * .4 + input$n_premium * premium_fee *  n_tot
       
       # MTurk + Masters qual
-      masters_fee <- (part_pay + bonus) * .2 + part_pay * .05 + input$n_premium * premium_fee *  n_tot
+      masters_fee <- (part_pay_tot + bonus_tot) * .2 + part_pay_tot * .05 + input$n_premium * premium_fee *  n_tot
       
       # CloudResearch (MTurk + CR fee)
       # CR does not issue fee for bonuses
-      cr_fee <- (part_pay) * .3 + bonus * .2 + input$n_premium * premium_fee *  n_tot
+      cr_fee <- (part_pay_tot) * .3 + bonus_tot * .2 + input$n_premium * premium_fee *  n_tot
       
       # Prolific
-      prolific_fee <- (part_pay + bonus) * .33
-      
+      prolific_fee <- (part_pay_tot + bonus_tot) * .33
 
       # Total pay
       tot_pay_mturk <- tot_pay + mturk_fee
+      tot_pay_mturk_large <- tot_pay + mturk_fee_large
       tot_pay_masters <- tot_pay + masters_fee
       tot_pay_cr <- tot_pay + cr_fee
       tot_pay_prolific <- tot_pay + prolific_fee
-    
 
     # Prolific cost breakdown
     data.frame(
-      Component = c("Participant payment",
-                    "Service fee",
-                    "Total"),
-      Cost.MTurk = as.character(c(round(tot_pay, 2),
-                                  round(mturk_fee, 2),
-                                  round(tot_pay_mturk, 2))),
-      Cost.MTurk.Masters = as.character(c(round(tot_pay, 2),
-                                          round(masters_fee, 2),
-                                          round(tot_pay_masters, 2))),
-      Cost.CloudResearch = as.character(c(round(tot_pay, 2),
-                                          round(cr_fee, 2),
-                                          round(tot_pay_cr, 2))),
-      Cost.Prolific = as.character(c(round(tot_pay, 2),
-                                     round(prolific_fee, 2),
-                                     round(tot_pay_prolific, 2))),
-      stringsAsFactors = FALSE)
+      Component = c("Reward per participant (incl. bonus)",
+                    "Total participant payment",
+                    "Total service fee",
+                    "Total cost"),
+      "MTurk (N < 10)" = as.character(c(round(part_pay_tot_1, 2),
+                                        round(tot_pay, 2),
+                                        round(mturk_fee, 2),
+                                        round(tot_pay_mturk, 2))),
+      "MTurk (N > 9)" = as.character(c(round(part_pay_tot_1, 2),
+                                       round(tot_pay, 2),
+                                       round(mturk_fee_large, 2),
+                                       round(tot_pay_mturk_large, 2))),
+      "MTurk Masters (N < 10)" = as.character(c(round(part_pay_tot_1, 2),
+                                                round(tot_pay, 2),
+                                               round(masters_fee, 2),
+                                               round(tot_pay_masters, 2))),
+      CloudResearch = as.character(c(round(part_pay_tot_1, 2),
+                                     round(tot_pay, 2),
+                                     round(cr_fee, 2),
+                                     round(tot_pay_cr, 2))),
+      Prolific = as.character(c(round(part_pay_tot_1, 2),
+                                round(tot_pay, 2), 
+                                round(prolific_fee, 2),
+                                round(tot_pay_prolific, 2))),
+      stringsAsFactors = FALSE,
+      check.names=FALSE) # this allows special characters (e.g., spaces) in column names
     
   })
   
   # Show the values in an HTML table ----
   output$cost_table <- renderTable({
     numericValues()
+  },
+  striped = T)
+  
+  # Reset button
+  observeEvent(input$reset, {
+    updateNumericInput(session = getDefaultReactiveDomain(), "n_t1", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "t_t1", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "bonus_t1", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "n_t2", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "t_t2", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "bonus_t2", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "n_t3", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "t_t3", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "bonus_t3", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "n_premium", value = 0)
+    updateNumericInput(session = getDefaultReactiveDomain(), "rate", value = 7.5)
   })
   
 }
