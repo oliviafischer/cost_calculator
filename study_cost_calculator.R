@@ -145,7 +145,9 @@ ui <- fluidPage(
         br(),
         li("Prolific service fee (",
            a(href = "https://www.prolific.co/pricing", "Click here", target="_blank"),
-           "for pricing details): 33%")
+           "for pricing details): 33%"),
+        br(),
+        li("All amounts in the cost breakdown are estimates only. Real fees may differ.")
         ))
 
     
@@ -239,58 +241,73 @@ server <- function(input, output) {
       
 
       ## Service fees
+      
+      # VAT (for all)
+      vat <- .077
+      
       # MTurk
       
       premium_fee <- .4
       
       mturk_fee <- (part_pay_tot + bonus_tot) * .2 + input$n_premium * premium_fee *  n_tot
+      mturk_vat <- (tot_pay + mturk_fee) * vat
       
       # MTurk large batch (N > 9)
       # UNCLEAR IF 40% COMMISSION IS ONLY ON PAYMENT OR ALSO BONUS
       mturk_fee_large <- (part_pay_tot + bonus_tot) * .4 + input$n_premium * premium_fee *  n_tot
+      mturk_vat_large <- (tot_pay + mturk_fee_large) * vat
       
       # MTurk + Masters qual
       masters_fee <- (part_pay_tot + bonus_tot) * .2 + part_pay_tot * .05 + input$n_premium * premium_fee *  n_tot
+      masters_vat <- (tot_pay + masters_fee) * vat
       
       # CloudResearch (MTurk + CR fee)
       # CR does not issue fee for bonuses
       cr_fee <- (part_pay_tot) * .3 + bonus_tot * .2 + input$n_premium * premium_fee *  n_tot
+      cr_vat <- (tot_pay + cr_fee) * vat
       
       # Prolific
       prolific_fee <- (part_pay_tot + bonus_tot) * .33
-
+      prolific_vat <- (tot_pay + prolific_fee) * vat
+      
       # Total pay
-      tot_pay_mturk <- tot_pay + mturk_fee
-      tot_pay_mturk_large <- tot_pay + mturk_fee_large
-      tot_pay_masters <- tot_pay + masters_fee
-      tot_pay_cr <- tot_pay + cr_fee
-      tot_pay_prolific <- tot_pay + prolific_fee
+      tot_pay_mturk <- tot_pay + mturk_fee + mturk_vat
+      tot_pay_mturk_large <- tot_pay + mturk_fee_large + mturk_vat_large
+      tot_pay_masters <- tot_pay + masters_fee + masters_vat
+      tot_pay_cr <- tot_pay + cr_fee + cr_vat
+      tot_pay_prolific <- tot_pay + prolific_fee + prolific_vat
 
-    # Prolific cost breakdown
+    # Cost breakdown
     data.frame(
       Component = c("Reward per participant (incl. bonus)",
                     "Total participant payment",
                     "Total service fee",
+                    "Total VAT (usually 7.7%)",
                     "Total cost"),
       "MTurk (N < 10)" = as.character(c(round(part_pay_tot_1, 2),
                                         round(tot_pay, 2),
                                         round(mturk_fee, 2),
+                                        round(mturk_vat, 2),
                                         round(tot_pay_mturk, 2))),
       "MTurk (N > 9)" = as.character(c(round(part_pay_tot_1, 2),
                                        round(tot_pay, 2),
                                        round(mturk_fee_large, 2),
+                                       round(mturk_vat_large, 2),
                                        round(tot_pay_mturk_large, 2))),
       "MTurk Masters (N < 10)" = as.character(c(round(part_pay_tot_1, 2),
                                                 round(tot_pay, 2),
-                                               round(masters_fee, 2),
-                                               round(tot_pay_masters, 2))),
+                                                round(masters_fee, 2),
+                                                round(masters_vat, 2),
+                                                round(tot_pay_masters, 2))),
       CloudResearch = as.character(c(round(part_pay_tot_1, 2),
                                      round(tot_pay, 2),
                                      round(cr_fee, 2),
+                                     round(cr_vat, 2),
                                      round(tot_pay_cr, 2))),
       Prolific = as.character(c(round(part_pay_tot_1, 2),
                                 round(tot_pay, 2), 
                                 round(prolific_fee, 2),
+                                round(prolific_vat, 2),
                                 round(tot_pay_prolific, 2))),
       stringsAsFactors = FALSE,
       check.names=FALSE) # this allows special characters (e.g., spaces) in column names
