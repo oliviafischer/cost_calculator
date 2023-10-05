@@ -116,7 +116,7 @@ ui <- fluidPage(
     column(4,
            # VAT / tax
            numericInput("vat",
-                        "VAT / tax (%):",
+                        "VAT / tax (%)**:",
                         min = 0,
                         # max = 10,
                         value = 7.7)),
