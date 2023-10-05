@@ -114,7 +114,16 @@ ui <- fluidPage(
                        step = .1)),
     
     column(4,
-           actionButton("reset", "Reset"))
+           # VAT / tax
+           numericInput("vat",
+                        "VAT / tax (%):",
+                        min = 0,
+                        # max = 10,
+                        value = 7.7)),
+    
+    column(4,
+           actionButton("reset", "Reset",
+                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"))
     
     
   ),
@@ -137,10 +146,13 @@ ui <- fluidPage(
         br(),
         li("Additional service fee for MTurk Masters Qualifications (higher quality participants: 5%)"),
         br(),
-        li("*Premium qualifications (MTurk only): median additional fee of $0.40 per assignment (range from $0.05 to $1.00); MTurk allows a maximum of 2 premium qualifications per HIT"),
+        li("* Premium qualifications (MTurk only): median additional fee of $0.40 per assignment (range from $0.05 to $1.00); MTurk allows a maximum of 2 premium qualifications per HIT"),
         br(),
-        li("CloudResearch service fee (",
-           a(href = "https://go.cloudresearch.com/en/knowledge/turkprime-fees-for-using-the-mturk-toolkit", "Click here", target="_blank"),
+        li("** Check what level of VAT / tax applies to you depending on your region:",
+           a(href = "https://aws.amazon.com/tax-help/", "Amazon Web Services Tax Help", target="_blank"),
+        ),
+        br(),
+        li("CloudResearch service fee (",a(href = "https://go.cloudresearch.com/en/knowledge/turkprime-fees-for-using-the-mturk-toolkit", "Click here", target="_blank"),
            "for pricing details): 10% plus 20% MTurk service fee; no CR fee for bonuses (standard MTurk fee)"),
         br(),
         li("Prolific service fee (",
@@ -242,8 +254,8 @@ server <- function(input, output) {
 
       ## Service fees
       
-      # VAT (for all)
-      vat <- .077
+      # VAT
+      vat <- input$vat/100 # percent
       
       # MTurk
       
@@ -282,7 +294,7 @@ server <- function(input, output) {
       Component = c("Reward per participant (incl. bonus)",
                     "Total participant payment",
                     "Total service fee",
-                    "Total VAT (usually 7.7%)",
+                    "Total VAT",
                     "Total cost"),
       "MTurk (N < 10)" = as.character(c(round(part_pay_tot_1, 2),
                                         round(tot_pay, 2),
@@ -333,6 +345,7 @@ server <- function(input, output) {
     updateNumericInput(session = getDefaultReactiveDomain(), "bonus_t3", value = 0)
     updateNumericInput(session = getDefaultReactiveDomain(), "n_premium", value = 0)
     updateNumericInput(session = getDefaultReactiveDomain(), "rate", value = 7.5)
+    updateNumericInput(session = getDefaultReactiveDomain(), "vat", value = 7.7)
   })
   
 }

@@ -5,10 +5,9 @@ account: ofischer
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 6780263
-bundleId: 6717708
+bundleId: 6717755
 url: https://ofischer.shinyapps.io/study_cost_calculator/
-when: 1673361237.17632
-lastSyncTime: 1673361237.17633
+when: 1673362072.00931
+lastSyncTime: 1673362072.00932
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: README.md
