@@ -6,46 +6,92 @@ library(tidyverse)
 
 ui <- fluidPage(
   
-  titlePanel("Study cost calculator"),
+  titlePanel("Online study cost calculator"),
   
-  # Choice of recruitment platform
-  # radioButtons("platform", 
-  #                    "Choose the recruitment platform",
-  #                    choiceNames = c("Amazon MTurk", "Prolific"),
-  #                    choiceValues = c("mturk", "prolific"),
-  #                    inline = T,
-  #                    selected = character(0)),
+  # Custom CSS for hover effect with adjustabe content
+  tags$head(
+    tags$style(HTML('
+    .popup-card {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .popup-content {
+      display: none;
+      position: absolute;
+      background: #333;
+      color: #fff;
+      padding: 5px;
+      border-radius: 5px;
+      top: -40px;
+      left: 0;
+      width: 250px;
+      text-align: center;
+    }
+
+    .popup-card:hover .popup-content {
+      display: block;
+    }
+  '))
+  ),
   
-  # checkboxInput("platform2", 
-  #                    "Choose the recruitment platform",
-  #                    choiceNames = c("Amazon MTurk", "Prolific"),
-  #                    choiceValues = c("mturk", "prolific"),
-  #                    inline = T,
-  #                    selected = "mturk"),
+  #   p("Hover over the ", tags$span(class = "hover-info", icon("info-sign", lib = "glyphicon"), data_info = "This is information 2"), " for more information.")
+  # ,
   
+
   fluidRow(
+    
     column(4,
+           h4("No. of participants"),
+           
            numericInput("n_t1",
-                        "No. of participants (assignments) T1:",
+                        span("T1:",
+                             tags$div(
+                               class = "popup-card",
+                               tags$style("z-index: 1000;"),  # Set a high z-index value
+                               icon("info-sign", lib = "glyphicon"),
+                               tags$div(
+                                 class = "popup-content",
+                                 "Enter the number of participants (or assignments on MTurk) you plan on recruiting. If you are planning a study with multiple time points T, enter the number of participants for each time point (T1-T3).",
+                               )
+                             )
+                        ),
                         min = 0,
-                        value = 0)),
+                        value = 0))
+    ,
     
     column(4,
+           h4("Length of study (minutes)"),
            numericInput("t_t1",
-                        "Length of study T1 (minutes):",
+                        span("T1:",
+                             tags$div(
+                               class = "popup-card",
+                               tags$style("z-index: 1000;"),  # Set a high z-index value
+                               icon("info-sign", lib = "glyphicon"),
+                               tags$div(
+                                 class = "popup-content",
+                                 "Enter the estimated duration of your study for an individual participant. If you are planning a study with multiple time points T, enter the study duration for each time point (T1-T3).",
+                               )
+                             )
+                             ),
                         min = 0,
                         value = 0)),
-    
-    # column(4,
-    #        radioButtons("masters",
-    #                     "Require Masters Qualification (MTurk only)",
-    #                     choices = c("Yes", "No"),
-    #                     selected = character(0))),
-    
-    
-    column(4,
-           numericInput("bonus_t1",
-                        "Bonus payment per participant T1 ($):",
+
+      column(4,
+             h4("Bonus per participant ($)"),
+             numericInput("bonus_t1",
+                        span("T1:",
+                             tags$div(
+                               class = "popup-card",
+                               tags$style("z-index: 1000;"),  # Set a high z-index value
+                               icon("info-sign", lib = "glyphicon"),
+                               tags$div(
+                                 class = "popup-content",
+                                 "Enter the bonus payment each participant will get. If you are planning a study with multiple time points T, enter the bonus payment per participant for each time point (T1-T3).",
+                               )
+                             )
+                             ),
                         min = 0,
                         value = 0,
                         step = .1))
@@ -55,19 +101,19 @@ ui <- fluidPage(
   fluidRow(
     column(4,
            numericInput("n_t2",
-                        "No. of participants (assignments) T2:",
+                        "T2:",
                         min = 0,
                         value = 0)),
     
     column(4,
            numericInput("t_t2",
-                        "Length of study T2 [minutes]:",
+                        "T2:",
                         min = 0,
                         value = 0)),
     
     column(4,
            numericInput("bonus_t2",
-                        "Bonus payment per participant T2 ($):",
+                        "T2:",
                         min = 0,
                         value = 0,
                         step = .1))
@@ -77,29 +123,39 @@ ui <- fluidPage(
   fluidRow(
     column(4,
            numericInput("n_t3",
-                        "No. participants (assignments) T3:",
+                        "T3:",
                         min = 0,
                         value = 0)),
     
     column(4,
            numericInput("t_t3",
-                        "Length of study T3 [minutes]:",
+                        "T3:",
                         min = 0,
                         value = 0)),
     
     column(4,
            numericInput("bonus_t3",
-                        "Bonus payment per participant T3 ($):",
+                        "T3:",
                         min = 0,
                         value = 0,
-                        step = .1))
+                        step = .1)),
     
   ),
+  
   
   fluidRow(
     column(4,
            numericInput("n_premium",
-                        "No. of premium qualifications*:",
+                        span("No. of premium qualifications:", 
+                             tags$div(
+                               class = "popup-card",
+                               icon("info-sign", lib = "glyphicon"),
+                               tags$div(
+                                 class = "popup-content",
+                                 "MTurk only: median additional fee of $0.40 per assignment (range from $0.05 to $1.00); MTurk allows a maximum of 2 premium qualifications per HIT",
+                               )
+                             )
+                             ),
                         min = 0,
                         max = 2,
                         value = 0)),
@@ -116,22 +172,38 @@ ui <- fluidPage(
     column(4,
            # VAT / tax
            numericInput("vat",
-                        "VAT / tax (%)**:",
+                        span("VAT / tax (%):",
+                             tags$div(
+                               class = "popup-card",
+                               icon("info-sign", lib = "glyphicon"),
+                               tags$div(
+                                 class = "popup-content",
+                                 "Check what level of VAT / tax applies to you depending on your region:",
+                                 a(href = "https://aws.amazon.com/tax-help/", "Amazon Web Services Tax Help", target="_blank")                               
+                                 )
+                             )
+
+           ),
                         min = 0,
                         # max = 10,
-                        value = 7.7)),
+                        value = 7.7))
+    ),
     
-    column(4,
+    fluidRow(
+      column(4,
            actionButton("reset", "Reset",
                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4"))
-    
-    
+  ),
+  
+  # Add an empty gap with a specified height (e.g., 20 pixels)
+  fluidRow(
+    div(style = "height: 20px;")
   ),
 
   
   # Output: Table summarizing the values entered ----
   
-  h4("Cost breakdown (in $)"),
+  h4("Cost breakdown ($)"),
   
   tableOutput("cost_table"),
   
@@ -145,12 +217,6 @@ ui <- fluidPage(
         li("MTurk service fee for large (>9) assignments/participants: 40%. Circumvent this by breaking down large assignments."),
         br(),
         li("Additional service fee for MTurk Masters Qualifications (higher quality participants: 5%)"),
-        br(),
-        li("* Premium qualifications (MTurk only): median additional fee of $0.40 per assignment (range from $0.05 to $1.00); MTurk allows a maximum of 2 premium qualifications per HIT"),
-        br(),
-        li("** Check what level of VAT / tax applies to you depending on your region:",
-           a(href = "https://aws.amazon.com/tax-help/", "Amazon Web Services Tax Help", target="_blank"),
-        ),
         br(),
         li("CloudResearch service fee (",a(href = "https://go.cloudresearch.com/en/knowledge/turkprime-fees-for-using-the-mturk-toolkit", "Click here", target="_blank"),
            "for pricing details): 10% plus 20% MTurk service fee; no CR fee for bonuses (standard MTurk fee)"),
@@ -352,7 +418,6 @@ server <- function(input, output) {
 
 # Create Shiny app ----
 shinyApp(ui, server)
-
 
 
 
