@@ -6,6 +6,7 @@ library(tidyverse)
 
 ui <- fluidPage(
   theme = shinythemes::shinytheme("flatly"),  # Apply the flatly theme
+  title = "Study cost calculator",
   
   # Custom CSS for hover effect with adjustabe content
   tags$head(
@@ -193,7 +194,7 @@ ui <- fluidPage(
     
     column(4,
            # Hourly rate paid to participants
-           sliderInput("rate",
+           numericInput("rate",
                        "Hourly rate ($)",
                        min = 0,
                        max = 20,
@@ -266,7 +267,8 @@ ui <- fluidPage(
   tableOutput("cost_table"),
   
   div(
-    "All amounts in the cost breakdown are estimates only. Real fees may differ."
+    strong("Caution:"),
+    "All amounts in the cost breakdown are estimates only, and real fees may differ. We disclaim any responsibility for discrepancies in the actual fees."
   ),
   
   div(class = "footer",
