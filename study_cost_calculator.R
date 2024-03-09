@@ -198,7 +198,7 @@ ui <- fluidPage(
                        "Hourly rate ($)",
                        min = 0,
                        max = 20,
-                       value = 7.5,
+                       value = 9,
                        step = .1)),
     
     column(4,
@@ -218,7 +218,7 @@ ui <- fluidPage(
                         ),
                         min = 0,
                         # max = 10,
-                        value = 7.7))
+                        value = 8.1)) # current MTurk VAT in Switzerland
   ),
   
   fluidRow(
@@ -244,7 +244,7 @@ ui <- fluidPage(
          class = "popup-content",
          style = "width: 400px;",
          "MTurk service fee: 20% - ", 
-         a(href = "https://requester.mturk.com/pricing", "Pricing details", target="_blank"),
+         a(href = "https://www.mturk.com/pricing", "Pricing details", target="_blank"),
          br(),
          br(),
          "MTurk service fee for large (>9) assignments/participants: 40%. Circumvent this by breaking down large assignments.",
@@ -253,13 +253,16 @@ ui <- fluidPage(
          "Additional service fee for MTurk Masters Qualifications (higher quality participants): 5%",
          br(),
          br(),
-         "CloudResearch service fee: 10% plus 20% MTurk service fee; no CR fee for bonuses (standard MTurk fee) - ",
+         "CloudResearch service fee: 20% plus 20% MTurk service fee; no CR fee for bonuses (standard MTurk fee) - ",
          a(href = "https://go.cloudresearch.com/en/knowledge/turkprime-fees-for-using-the-mturk-toolkit", "Pricing details", target="_blank"),
          br(),
          br(),
-         "Prolific service fee: 33% - ",
-         a(href = "https://www.prolific.co/pricing", "Pricing details", target="_blank")
-         
+         "Prolific service fee (academia): 33% - ",
+         a(href = "https://researcher-help.prolific.com/hc/en-gb/articles/360009223533-What-is-your-pricing", "Pricing details", target="_blank"),
+         br(),
+         br(),
+         strong("Note: "),
+         "All service fees are calculated as the proportion of total participant payment. Fees are as of March 2024."
        )
      )
   ),
@@ -350,7 +353,7 @@ server <- function(input, output) {
     # total bonus per person
     bonus_tot_1 <- bonus_t1 + bonus_t2 + bonus_t3
     
-    
+    # total payment per person
     part_pay_tot_1 <- sum(
       part_pay_t1,
       part_pay_t2,
@@ -375,16 +378,18 @@ server <- function(input, output) {
     
     # MTurk large batch (N > 9)
     # UNCLEAR IF 40% COMMISSION IS ONLY ON PAYMENT OR ALSO BONUS
-    mturk_fee_large <- (part_pay_tot + bonus_tot) * .4 + input$n_premium * premium_fee *  n_tot
+    # mturk_fee_large <- (part_pay_tot + bonus_tot) * .4 + input$n_premium * premium_fee *  n_tot # 40% charged on everything
+    mturk_fee_large <- (part_pay_tot) * .4 + bonus_tot * .2+ input$n_premium * premium_fee *  n_tot # 40% charged on only participant payment (not bonus)
     mturk_vat_large <- (tot_pay + mturk_fee_large) * vat
     
     # MTurk + Masters qual
     masters_fee <- (part_pay_tot + bonus_tot) * .2 + part_pay_tot * .05 + input$n_premium * premium_fee *  n_tot
     masters_vat <- (tot_pay + masters_fee) * vat
     
-    # CloudResearch (MTurk + CR fee)
+    # CloudResearch (CR fee + MTurk)
+    # CR rounds service fee (20%) to nearest penny *per participant*
     # CR does not issue fee for bonuses
-    cr_fee <- (part_pay_tot) * .3 + bonus_tot * .2 + input$n_premium * premium_fee *  n_tot
+    cr_fee <- (round((sum(part_pay_t1, part_pay_t2,part_pay_t3) * .2), 2)) * n_tot + (part_pay_tot + bonus_tot) * .2 + input$n_premium * premium_fee *  n_tot
     cr_vat <- (tot_pay + cr_fee) * vat
     
     # Prolific
