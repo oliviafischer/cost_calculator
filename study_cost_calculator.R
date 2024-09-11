@@ -75,7 +75,7 @@ ui <- fluidPage(
   fluidRow(
     
     column(4,
-           h4("No. of participants"),
+           h3("No. of participants"),
            
            numericInput("n_t1",
                         span("T1:",
@@ -94,7 +94,7 @@ ui <- fluidPage(
     ,
     
     column(4,
-           h4("Length of study (minutes)"),
+           h3("Length of study (minutes)"),
            numericInput("t_t1",
                         span("T1:",
                              tags$div(
@@ -111,7 +111,7 @@ ui <- fluidPage(
                         value = 0)),
     
     column(4,
-           h4("Bonus per participant ($)"),
+           h3("Bonus per participant ($)"),
            numericInput("bonus_t1",
                         span("T1:",
                              tags$div(
@@ -211,14 +211,16 @@ ui <- fluidPage(
                                tags$div(
                                  class = "popup-content",
                                  "Check what level of VAT / tax applies to you depending on your region:",
-                                 a(href = "https://aws.amazon.com/tax-help/", "Amazon Web Services Tax Help", target="_blank")                               
+                                 a(href = "https://aws.amazon.com/tax-help/", "Amazon Web Services Tax Help", target="_blank"),
+                                 "/ ",
+                                 a(href = "https://researcher-help.prolific.com/en/article/bf1a70", "Prolific Researcher Help Center", target="_blank"),
                                )
                              )
                              
                         ),
                         min = 0,
                         # max = 10,
-                        value = 8.1)) # current MTurk VAT in Switzerland
+                        value = 0)) # default VAT
   ),
   
   fluidRow(
@@ -235,7 +237,7 @@ ui <- fluidPage(
   
   # Output: Table summarizing the values entered ----
   
-  h4("Cost breakdown ($)",
+  h3("Cost breakdown ($)",
      tags$div(
        class = "popup-card",
        tags$style("z-index: 1000; h5"),  # Set a high z-index value
@@ -394,7 +396,8 @@ server <- function(input, output) {
     
     # Prolific
     prolific_fee <- (part_pay_tot + bonus_tot) * .33
-    prolific_vat <- (tot_pay + prolific_fee) * vat
+    # prolific_vat <- (tot_pay + prolific_fee) * vat
+    prolific_vat <- prolific_fee * vat # VAT only charged on platform/service fee
     
     # Total pay
     tot_pay_mturk <- tot_pay + mturk_fee + mturk_vat
@@ -458,8 +461,8 @@ server <- function(input, output) {
     updateNumericInput(session = getDefaultReactiveDomain(), "t_t3", value = 0)
     updateNumericInput(session = getDefaultReactiveDomain(), "bonus_t3", value = 0)
     updateNumericInput(session = getDefaultReactiveDomain(), "n_premium", value = 0)
-    updateNumericInput(session = getDefaultReactiveDomain(), "rate", value = 7.5)
-    updateNumericInput(session = getDefaultReactiveDomain(), "vat", value = 7.7)
+    updateNumericInput(session = getDefaultReactiveDomain(), "rate", value = 9)
+    updateNumericInput(session = getDefaultReactiveDomain(), "vat", value = 0)
   })
   
 }
